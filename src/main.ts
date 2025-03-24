@@ -8,7 +8,7 @@ import {
   VersioningType,
 } from '@nestjs/common';
 
-import { IValidationErrors } from '@common/models-interfaces/response';
+import { IValidationErrors } from '@common/models/response';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { initializeTransactionalContext } from 'typeorm-transactional';
 

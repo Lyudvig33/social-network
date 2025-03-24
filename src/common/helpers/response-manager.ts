@@ -1,7 +1,7 @@
 import { snakeCase } from 'lodash';
 import { ValidationError } from 'class-validator';
 
-import { IValidationErrors } from '@common/models-interfaces';
+import { IValidationErrors } from '@common/models';
 
 export class ResponseManager {
   static validationHandler(

@@ -1,4 +1,4 @@
-import { IId } from '@common/models-interfaces';
+import { IId } from '@common/models';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber } from 'class-validator';
 

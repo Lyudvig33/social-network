@@ -1,4 +1,4 @@
-import { IMessageSuccess } from '@common/models-interfaces';
+import { IMessageSuccess } from '@common/models';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean } from 'class-validator';
 

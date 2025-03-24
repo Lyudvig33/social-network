@@ -1,4 +1,4 @@
-import { IJwt } from '@common/models-interfaces';
+import { IJwt } from '@common/models';
 import { registerAs } from '@nestjs/config';
 
 export default registerAs(

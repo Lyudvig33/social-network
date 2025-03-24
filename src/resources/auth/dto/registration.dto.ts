@@ -10,7 +10,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class UpdateUserDto implements IRegistration {
+export class RegistrationDto implements IRegistration {
   @Matches(VALIDATION_PATTERNS.NAME)
   @IsString()
   @IsNotEmpty()

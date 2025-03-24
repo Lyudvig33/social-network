@@ -2,7 +2,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { appConfig, databaseConfiguration, jwtConfig } from '@common/configs';
 import { ENV_CONST } from '@common/constants';
 import { NodeEnv } from '@common/enums';
-import validators from '@common/models-interfaces/validators';
+import validators from '@common/models/validators';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
@@ -44,7 +44,7 @@ const envFilePath = isPorductionMode
           password: configService.get<string>(`DB_CONFIG.password`),
           database: configService.get<string>(`DB_CONFIG.database`),
           synchronize: configService.get<boolean>(`DB_CONFIG.sync`),
-          entities: ["dist/**/*.entity.js"],
+          entities: ['dist/**/*.entity.js'],
         };
         return options;
       },
