@@ -16,9 +16,7 @@ export class AuthUserGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const accessToken = request.headers?.authorization
-      ?.replace('Bearer', '')
-      ?.trim();
-
+    ?.split(' ')[1]
     if (!accessToken) {
       throw new UnauthorizedException(ERROR_MESSAGES.USER_UNAUTHORIZED);
     }
@@ -26,7 +24,6 @@ export class AuthUserGuard implements CanActivate {
     try {
       await this._jwtService.verify(accessToken);
       const payload = this._jwtService.decode(accessToken) as ITokenPayload;
-
       request.user = payload;
       return true;
     } catch (e) {

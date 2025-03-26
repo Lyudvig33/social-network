@@ -1,34 +1,36 @@
 import { FriendsService } from './firends.service';
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { CreateFriendDto } from './dto/create-firend.dto'
-import { UpdateFriendDto } from './dto/update-firend.dto'
+import { Controller, Get, Post, Param, Delete, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { AuthUser } from '@common/decorators';
+import { ITokenPayload } from '@common/models';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { AuthUserGuard } from '@common/guards';
 
+@ApiBearerAuth()
 @Controller('friends')
+@UseGuards(AuthUserGuard)
 export class FriendsController {
   constructor(private readonly friendsService: FriendsService) {}
 
-  @Post()
-  create(@Body() createfriendDto: CreateFriendDto) {
-    return this.friendsService.create(createfriendDto);
+  @Post(':id')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Add New friend' })
+  async addFriend(
+    @AuthUser() user: ITokenPayload,
+    @Param('id') friendId: string,
+  ) {
+    return this.friendsService.AddFriend(user.id, friendId);
   }
 
   @Get()
-  findAll() {
-    return this.friendsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.friendsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatefriendDto: UpdateFriendDto) {
-    return this.friendsService.update(+id, updatefriendDto);
+  @ApiOperation({ summary: 'Get All Friend' })
+  @HttpCode(HttpStatus.OK)
+  getFriends(@AuthUser() user: ITokenPayload) {
+    return this.friendsService.getFriends(user.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.friendsService.remove(+id);
+  @ApiOperation({ summary: 'Deleted Friend' })
+  removeFriend(@AuthUser() user: ITokenPayload, @Param('id') friendId: string) {
+    return this.friendsService.removeFriend(user.id, friendId);
   }
 }

@@ -1,26 +1,67 @@
-import { Injectable } from '@nestjs/common';
-import { CreateFriendDto } from './dto/create-firend.dto';
-import { UpdateFriendDto } from './dto/update-firend.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UsersEntity } from '@common/database/entities';
+import { Repository } from 'typeorm';
+
 
 @Injectable()
 export class FriendsService {
-  create(createFirendDto: CreateFriendDto) {
-    return 'This action adds a new firend';
+  constructor(
+    @InjectRepository(UsersEntity)
+    private userRepository: Repository<UsersEntity>,
+  ) {}
+
+  async AddFriend(userId: string, friendId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['friends'],
+    });
+
+    const friend = await this.userRepository.findOne({
+      where: { id: friendId },
+    });
+
+    if (!user || !friend) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.friends.some((f) => f.id === friendId)) {
+      throw new BadRequestException('Already friends');
+    }
+
+    user.friends.push(friend);
+    await this.userRepository.save(user);
+    return { message: 'Friend added successfully',friend};
   }
 
-  findAll() {
-    return `This action returns all firends`;
+  async getFriends(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['friends'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user.friends
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} firend`;
-  }
+  async removeFriend(userid: string, friendId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userid },
+      relations: ['friends'],
+    });
 
-  update(id: number, updateFirendDto: UpdateFriendDto) {
-    return `This action updates a #${id} firend`;
-  }
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} firend`;
+    user.friends = user.friends.filter((friend) => friend.id !== friendId);
+    await this.userRepository.save(user);
+    return { message: 'Friend removed successfully' };
   }
 }
