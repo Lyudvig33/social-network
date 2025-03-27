@@ -11,6 +11,7 @@ import {
 import { IValidationErrors } from '@common/models/response';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { initializeTransactionalContext } from 'typeorm-transactional';
+import { join } from 'path';
 
 const PORT = process.env.PORT || 5000;
 process.env.TZ = 'Etc/UTC';
@@ -36,6 +37,7 @@ async function bootstrap() {
       },
       stopAtFirstError: true,
       exceptionFactory: (errors) => {
+        // console.log(errors)
         const errorResponse: IValidationErrors[] = [];
         errors.forEach((e) => {
           if (e.constraints) {
@@ -49,7 +51,9 @@ async function bootstrap() {
               ),
             );
           }
-        });
+        });          
+        return errorResponse
+
       },
     }),
   );
@@ -62,6 +66,10 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/api/docs', app, document);
+
+  app.useStaticAssets(join(__dirname, '..', 'uploads'),{
+    prefix: 'uploads'
+  })
 
   await app.listen(PORT, () => console.log('Server Started On Port', PORT));
 }

@@ -29,7 +29,7 @@ export class FriendsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Deleted Friend' })
+  @ApiOperation({ summary: 'Delete Friend' })
   removeFriend(@AuthUser() user: ITokenPayload, @Param('id') friendId: string) {
     return this.friendsService.removeFriend(user.id, friendId);
   }

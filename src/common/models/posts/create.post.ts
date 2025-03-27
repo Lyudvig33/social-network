@@ -1,7 +1,8 @@
-import { MediaType } from '@common/database/entities'; 
+import { MediaType } from '@common/enums';
 
 export class ICreatePost {
-  content: string;
-  url?: string;
-  mediaType: MediaType;
+  content?: string;
+  images?: string[];
+  video?: string;
+  mediaType?: MediaType;
 }

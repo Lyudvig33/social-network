@@ -16,6 +16,7 @@ import { CommentsModule } from '@resources/comments';
 import { FriendsModule } from '@resources/friends';
 import { LikesModule } from '@resources/likes';
 import { addTransactionalDataSource } from 'typeorm-transactional';
+import { MulterModule } from '@nestjs/platform-express';
 
 const isPorductionMode = process.env.NODE_ENV === NodeEnv.production;
 
@@ -25,6 +26,9 @@ const envFilePath = isPorductionMode
 
 @Module({
   imports: [
+    MulterModule.register({
+      dest: './uploads'
+    }),
     ConfigModule.forRoot({
       envFilePath,
       isGlobal: true,

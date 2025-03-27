@@ -9,15 +9,22 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { AuthUserGuard } from '@common/guards';
 
 import { AuthUser } from '@common/decorators';
 import { ITokenPayload } from '@common/models';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { MediaType } from '@common/enums';
 
 @Controller('posts')
 @ApiBearerAuth()
@@ -28,11 +35,62 @@ export class PostsController {
   @Post()
   @ApiOperation({ summary: 'Created new post' })
   @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'images', maxCount: 5 },
+        { name: 'video', maxCount: 1 },
+      ],
+      {
+        storage: diskStorage({
+          destination: './uploads',
+          filename: (req, file, cb) => {
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const ext = extname(file.originalname);
+            cb(null, `${uniqueSuffix}${ext}`);
+          },
+        }),
+      },
+    ),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        content: { type: 'string', example: 'My New Post' },
+        mediaType: {
+          type: 'string',
+          enum: [...Object.values(MediaType)],
+          example: 'text',
+        },
+        images: { type: 'string', format: 'binary' },
+        video: { type: 'string', format: 'binary' },
+      },
+    },
+  })
   async create(
     @AuthUser() user: ITokenPayload,
     @Body() createPostDto: CreatePostDto,
+    @UploadedFiles()
+    files: { images?: Express.Multer.File[]; video?: Express.Multer.File[] },
   ) {
-    return this.postsService.createPost(createPostDto, user.id);
+
+    try {
+    const images = files?.images?.map((file) => `/uploads/${file.filename}`) || [];
+    const video = files?.video?.[0]? `/uploads/${files.video[0].filename}`: null;
+
+    if (images.length > 0 && video) {
+      throw new BadRequestException(
+        'You cannot upload photos and videos at the same time.',
+      );
+    }
+    
+    return this.postsService.createPost(createPostDto, user.id, images, video);
+    }catch(err) {
+      throw err;
+    }
   }
 
   @Get()

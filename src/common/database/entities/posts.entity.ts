@@ -3,18 +3,12 @@ import { UsersEntity } from './users.entity';
 import { LikesEntity } from './likes.entity';
 import { BaseEntity } from '../base';
 import { CommentsEntity } from './comments.entity';
-
-export enum MediaType {
-  photo = 'photo',
-  video = 'video',
-}
+import { MediaType } from '@common/enums/file.types';
 
 @Entity({ name: 'posts' })
 export class PostsEntity extends BaseEntity {
-
-
   @Column({ type: 'text' })
-  content: string;
+  content?: string;
 
   @Column({
     name: 'media_type',
@@ -24,8 +18,11 @@ export class PostsEntity extends BaseEntity {
   })
   mediaType: MediaType;
 
-  @Column({ name: 'media_url', nullable: true })
-  url?: string;
+  @Column('text', { array: true, nullable: true })
+  images?: string[];
+
+  @Column('text', { array: true, nullable: true })
+  video?: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.posts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
