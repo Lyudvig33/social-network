@@ -21,7 +21,7 @@ export class PostsEntity extends BaseEntity {
   @Column('text', { array: true, nullable: true })
   images?: string[];
 
-  @Column('text', { array: true, nullable: true })
+  @Column({ type: 'text', nullable: true })
   video?: string;
 
   @ManyToOne(() => UsersEntity, (user) => user.posts, { onDelete: 'CASCADE' })

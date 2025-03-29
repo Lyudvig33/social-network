@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { PostsController } from './posts.controller';
-import { PostsEntity } from '@common/database/entities';
+import { PostsEntity, UsersEntity } from '@common/database/entities';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -18,7 +18,7 @@ import { JwtModule } from '@nestjs/jwt';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([PostsEntity]),
+    TypeOrmModule.forFeature([PostsEntity,UsersEntity]),
   ],
   controllers: [PostsController],
   providers: [PostsService],

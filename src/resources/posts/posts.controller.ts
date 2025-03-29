@@ -78,8 +78,8 @@ export class PostsController {
   ) {
 
     try {
-    const images = files?.images?.map((file) => `/uploads/${file.filename}`) || [];
-    const video = files?.video?.[0]? `/uploads/${files.video[0].filename}`: null;
+    const images = files?.images?.map((file) => `${file.filename}`) || [];
+    const video = files?.video?.[0]? `${files.video[0].filename}`: null;
 
     if (images.length > 0 && video) {
       throw new BadRequestException(
@@ -110,8 +110,8 @@ export class PostsController {
   @Patch(':id')
   @ApiOperation({ summary: 'Updated Post By ID' })
   @HttpCode(HttpStatus.OK)
-  async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postsService.updatePost(id, updatePostDto);
+  async update(@Param('id') postId: string, @Body() updatePostDto: UpdatePostDto,@AuthUser() user: ITokenPayload) {
+    return this.postsService.updatePost(postId,updatePostDto,user.id);
   }
 
   @Delete(':id')
