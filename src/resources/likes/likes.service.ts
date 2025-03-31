@@ -1,26 +1,58 @@
-import { Injectable } from '@nestjs/common';
-import { CreateLikeDto } from './dto/create-like.dto';
-import { UpdateLikeDto } from './dto/update-like.dto';
+import { LikesEntity, PostsEntity } from '@common/database/entities';
+import { ITokenPayload } from '@common/models';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class LikesService {
-  create(createLikeDto: CreateLikeDto) {
-    return 'This action adds a new like';
+  constructor(
+    @InjectRepository(LikesEntity)
+    private likeRepository: Repository<LikesEntity>,
+    @InjectRepository(PostsEntity)
+    private postsRepository: Repository<PostsEntity>,
+  ) {}
+
+  async likePost(
+    postId: string,
+    user: ITokenPayload,
+  ): Promise<{ message: string }> {
+    const post = await this.postsRepository.findOne({ where: { id: postId } });
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    const existingLike = await this.likeRepository.findOne({
+      where: { post: { id: postId }, user: { id: user.id } },
+    });
+
+    if (existingLike) {
+      throw new BadRequestException('User already likes this post');
+    }
+
+    const like = this.likeRepository.create({ post, user });
+    await this.likeRepository.save(like);
+
+    return { message: 'Post like successfully' };
   }
 
-  findAll() {
-    return `This action returns all likes`;
+  async findAll(): Promise<LikesEntity[]> {
+    return await this.likeRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} like`;
-  }
+  async unLikePost(
+    postId: string,
+    user: ITokenPayload,
+  ): Promise<{ message: string }> {
+    const like = await this.likeRepository.findOne({
+      where: { post: { id: postId }, user: { id: user.id } },
+    });
+    await this.likeRepository.delete(like.id);
 
-  update(id: number, updateLikeDto: UpdateLikeDto) {
-    return `This action updates a #${id} like`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} like`;
+    return { message: 'like removed ' };
   }
 }
