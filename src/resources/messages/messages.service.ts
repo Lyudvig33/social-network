@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -30,17 +35,9 @@ export class MessagesService {
   ): Promise<MessagesEntity> {
     const { content } = createMessageDto;
 
-    const chat = await this.chatsRepository.findOne({ where: { id: chatId } });
+    const chat = await this.chatsRepository.findOne({ where: { id: chatId, chatMembers:{user: {id: user.id}} }});
     if (!chat) {
       throw new NotFoundException('Chat not found');
-    }
-
-    const isMember = await this.chatUsersRepository.findOne({
-      where: { chat: { id: chatId }, user: { id: user.id } },
-    });
-
-    if (!isMember) {
-      throw new ForbiddenException('You are not a member of this chat');
     }
 
     const message = this.messagesRepository.create({
@@ -52,10 +49,57 @@ export class MessagesService {
     return await this.messagesRepository.save(message);
   }
 
-  async getMessages(user: ITokenPayload, chatId: string): Promise<MessagesEntity[]> {
-    const chat = await this.chatsRepository.findOne({ where: { id: chatId } });
+  async getMessages(
+    user: ITokenPayload,
+    chatId: string,
+  ): Promise<MessagesEntity[]> {
+    const chat = await this.chatsRepository.findOne({ where: { id: chatId,chatMembers:{user: {id: user.id}}} });
     if (!chat) {
       throw new NotFoundException('Chat not found');
+    }
+
+    return await this.messagesRepository.find({
+      where: { chat: { id: chatId } },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async updateMessage(
+    updateMessageDto: UpdateMessageDto,
+    chatId: string,
+    user: ITokenPayload,
+    messageId: string,
+  ): Promise<MessagesEntity> {
+    const message = await this.messagesRepository.findOne({
+      where: { id: messageId, chat: { id: chatId },user: {id: user.id} },
+      relations: ['user', 'chat'],
+    });
+
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+
+    return await this.messagesRepository.save({id:message.id,content:updateMessageDto.content});
+  }
+
+  async removeMessage(
+    chatId: string,
+    user: ITokenPayload,
+    messageId: string,
+  ): Promise<{ message: string }> {
+    
+    const message = await this.messagesRepository.findOne({
+      where: { id: messageId, chat: { id: chatId } },
+      relations: ['user', 'chat'],
+    });
+
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+
+    if (message.user.id !== user.id) {
+      throw new ForbiddenException('You can only delete your own message');
     }
 
     const isMember = await this.chatUsersRepository.findOne({
@@ -66,28 +110,7 @@ export class MessagesService {
       throw new ForbiddenException('You are not a member of this chat');
     }
 
-    return await this.messagesRepository.find({
-      where:{chat: {id: chatId}},
-      relations: ['user'],
-      order: {createdAt: 'ASC'}
-    })
-
-  } 
-
-  async updateMessage(updateMessageDto: UpdateMessageDto, id: string,user: ITokenPayload ): Promise<MessagesEntity> {
-    const message = await this.messagesRepository.findOne({ where: {id},relations: ['user'] });
-
-    if (!message) {
-      throw new NotFoundException( 'Message not found')
-    }
-
-    if (message.user.id !== user.id) {
-      throw new BadRequestException('You can only edit your own  message')
-    }
-    Object.assign(message,updateMessageDto);
-
-    return await this.messagesRepository.save(message)
+    await this.messagesRepository.delete(message.id);
+    return { message: 'Message deleted' };
   }
-  
-  remove(id: string) {}
 }
