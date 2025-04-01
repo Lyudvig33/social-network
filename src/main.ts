@@ -37,7 +37,6 @@ async function bootstrap() {
       },
       stopAtFirstError: true,
       exceptionFactory: (errors) => {
-        // console.log(errors)
         const errorResponse: IValidationErrors[] = [];
         errors.forEach((e) => {
           if (e.constraints) {
