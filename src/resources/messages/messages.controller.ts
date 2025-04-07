@@ -17,8 +17,11 @@ import { AuthUser } from '@common/decorators';
 import { ITokenPayload } from '@common/models';
 import { AuthUserGuard } from '@common/guards';
 import { MessagesEntity } from '@common/database/entities';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { MessagesParamsDto } from './dto/params.dto';
 
+
+@ApiBearerAuth()
 @UseGuards(AuthUserGuard)
 @Controller('chats/:chatId/messages')
 export class MessagesController {
@@ -49,16 +52,14 @@ export class MessagesController {
   @ApiOperation({ summary: 'Edit message' })
   @HttpCode(HttpStatus.CREATED)
   update(
-    @Param('chatId') chatId: string,
-    @Param('messageId') messageId: string,
+    @Param() params: MessagesParamsDto,
     @Body() updateMessageDto: UpdateMessageDto,
     @AuthUser() user: ITokenPayload,
   ) {
     return this.messagesService.updateMessage(
       updateMessageDto,
-      chatId,
       user,
-      messageId,
+      params
     );
   }
 
@@ -66,10 +67,9 @@ export class MessagesController {
   @ApiOperation({ summary: 'delete message' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
-    @Param('chatId') chatId: string,
-    @Param('messageId') messageId: string,
+    @Param() params: MessagesParamsDto,
     @AuthUser() user: ITokenPayload,
   ) {
-    return this.messagesService.removeMessage(chatId, user, messageId);
+    return this.messagesService.removeMessage(user, params);
   }
 }

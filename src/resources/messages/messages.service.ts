@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -14,6 +13,7 @@ import {
 } from '@common/database/entities';
 import { Repository } from 'typeorm';
 import { ITokenPayload } from '@common/models';
+import { MessagesParamsDto } from './dto/params.dto';
 
 @Injectable()
 export class MessagesService {
@@ -35,7 +35,9 @@ export class MessagesService {
   ): Promise<MessagesEntity> {
     const { content } = createMessageDto;
 
-    const chat = await this.chatsRepository.findOne({ where: { id: chatId, chatMembers:{user: {id: user.id}} }});
+    const chat = await this.chatsRepository.findOne({
+      where: { id: chatId, chatMembers: { user: { id: user.id } } },
+    });
     if (!chat) {
       throw new NotFoundException('Chat not found');
     }
@@ -53,7 +55,9 @@ export class MessagesService {
     user: ITokenPayload,
     chatId: string,
   ): Promise<MessagesEntity[]> {
-    const chat = await this.chatsRepository.findOne({ where: { id: chatId,chatMembers:{user: {id: user.id}}} });
+    const chat = await this.chatsRepository.findOne({
+      where: { id: chatId, chatMembers: { user: { id: user.id } } },
+    });
     if (!chat) {
       throw new NotFoundException('Chat not found');
     }
@@ -67,12 +71,14 @@ export class MessagesService {
 
   async updateMessage(
     updateMessageDto: UpdateMessageDto,
-    chatId: string,
     user: ITokenPayload,
-    messageId: string,
+    params: MessagesParamsDto,
   ): Promise<MessagesEntity> {
+
+    const { messageId, chatId } = params;
+    
     const message = await this.messagesRepository.findOne({
-      where: { id: messageId, chat: { id: chatId },user: {id: user.id} },
+      where: { id: messageId, chat: { id: chatId }, user: { id: user.id } },
       relations: ['user', 'chat'],
     });
 
@@ -80,15 +86,17 @@ export class MessagesService {
       throw new NotFoundException('Message not found');
     }
 
-    return await this.messagesRepository.save({id:message.id,content:updateMessageDto.content});
+    return await this.messagesRepository.save({
+      id: message.id,
+      content: updateMessageDto.content,
+    });
   }
 
   async removeMessage(
-    chatId: string,
     user: ITokenPayload,
-    messageId: string,
+    params: MessagesParamsDto,
   ): Promise<{ message: string }> {
-    
+    const { messageId, chatId } = params;
     const message = await this.messagesRepository.findOne({
       where: { id: messageId, chat: { id: chatId } },
       relations: ['user', 'chat'],

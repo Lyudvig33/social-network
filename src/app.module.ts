@@ -11,7 +11,6 @@ import { UsersModule } from '@resources/users';
 import { PostsModule } from '@resources/posts';
 import { MessagesModule } from '@resources/messages';
 import { ChatsModule } from '@resources/chats';
-import { ChatsUsersModule } from '@resources/chats-users';
 import { CommentsModule } from '@resources/comments';
 import { FriendsModule } from '@resources/friends';
 import { LikesModule } from '@resources/likes';
@@ -64,7 +63,6 @@ const envFilePath = isPorductionMode
     PostsModule,
     MessagesModule,
     ChatsModule,
-    ChatsUsersModule,
     CommentsModule,
     FriendsModule,
     LikesModule,

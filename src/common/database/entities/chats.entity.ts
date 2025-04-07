@@ -3,11 +3,8 @@ import { BaseEntity } from '../base';
 import { MessagesEntity } from './messages.entity';
 import { UsersEntity } from './users.entity';
 import { ChatsUsersEntity } from './chats.users.entity';
+import { ChatType } from '@common/enums';
 
-export enum ChatType {
-  GroupChat = 'groupChat',
-  Dm = 'dm',
-}
 
 @Entity({ name: 'chats' })
 export class ChatsEntity extends BaseEntity {
@@ -24,6 +21,9 @@ export class ChatsEntity extends BaseEntity {
     default: ChatType.Dm,
   })
   chatType: ChatType;
+
+  @Column({name: 'gruop_chat_name', nullable: true})
+  groupChatName: string
 
   @OneToMany(() => MessagesEntity, (message) => message.chat)
   messages: MessagesEntity[];
