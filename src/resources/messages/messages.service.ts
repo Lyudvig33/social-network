@@ -42,13 +42,13 @@ export class MessagesService {
       throw new NotFoundException('Chat not found');
     }
 
-    const message = this.messagesRepository.create({
+    const message = await this.messagesRepository.save({
       content,
       user,
       chat,
     });
 
-    return await this.messagesRepository.save(message);
+    return message;
   }
 
   async getMessages(
@@ -74,9 +74,8 @@ export class MessagesService {
     user: ITokenPayload,
     params: MessagesParamsDto,
   ): Promise<MessagesEntity> {
-
     const { messageId, chatId } = params;
-    
+
     const message = await this.messagesRepository.findOne({
       where: { id: messageId, chat: { id: chatId }, user: { id: user.id } },
       relations: ['user', 'chat'],
@@ -86,10 +85,12 @@ export class MessagesService {
       throw new NotFoundException('Message not found');
     }
 
-    return await this.messagesRepository.save({
+    await this.messagesRepository.save({
       id: message.id,
       content: updateMessageDto.content,
     });
+
+    return message;
   }
 
   async removeMessage(
@@ -119,6 +120,7 @@ export class MessagesService {
     }
 
     await this.messagesRepository.delete(message.id);
+
     return { message: 'Message deleted' };
   }
 }

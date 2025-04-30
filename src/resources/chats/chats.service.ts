@@ -98,7 +98,7 @@ export class ChatsService {
           'DM chat can only have one member besides the owner',
         );
       }
-      
+       
 
       const alreadyExists = await this.doesDmChatExist(user.id, members[0]);
       if (alreadyExists) {
